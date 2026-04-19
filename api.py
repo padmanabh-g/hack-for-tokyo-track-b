@@ -99,8 +99,9 @@ def _matches_to_geojson_response(matches):
 async def match_endpoint(
     farmer_file: UploadFile = File(...),
     polygon_file: UploadFile = File(...),
+    areas_file: Optional[UploadFile] = File(None),
 ):
-    """Upload farmer xlsx + polygon KMZ/KML, run matching, return GeoJSON."""
+    """Upload farmer xlsx + polygon KMZ/KML + optional polygon areas xlsx, run matching, return GeoJSON."""
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             farmer_path = os.path.join(tmpdir, "farmers.xlsx")
@@ -112,8 +113,14 @@ async def match_endpoint(
             with open(polygon_path, "wb") as f:
                 shutil.copyfileobj(polygon_file.file, f)
 
+            areas_path = None
+            if areas_file and areas_file.filename:
+                areas_path = os.path.join(tmpdir, "polygon_areas.xlsx")
+                with open(areas_path, "wb") as f:
+                    shutil.copyfileobj(areas_file.file, f)
+
             farmers = load_farmers(farmer_path)
-            polygons = load_polygons(polygon_path)
+            polygons = load_polygons(polygon_path, areas_path=areas_path)
             matches = run_matching(farmers, polygons)
 
             _state["matches"] = matches

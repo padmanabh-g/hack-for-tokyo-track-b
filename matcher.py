@@ -59,7 +59,28 @@ def load_farmers(path: str) -> pd.DataFrame:
     return df
 
 
-def load_polygons(path: str) -> gpd.GeoDataFrame:
+def load_polygon_areas(path: str) -> dict:
+    """Load polygon_areas.xlsx → {polygon_name: area_ha}. Auto-detects header row."""
+    raw = pd.read_excel(path, header=None)
+    header_row = 0
+    for i, row in raw.iterrows():
+        vals = " ".join(str(v).lower() for v in row if pd.notna(v))
+        if "polygon id" in vals or "area" in vals:
+            header_row = i
+            break
+    df = pd.read_excel(path, header=header_row)
+    df.columns = [c.strip().lower() for c in df.columns]
+    # Find polygon id and area columns
+    id_col = next((c for c in df.columns if "polygon" in c or "id" in c), None)
+    area_col = next((c for c in df.columns if "ha" in c or "area" in c), None)
+    if not id_col or not area_col:
+        return {}
+    df = df.dropna(subset=[id_col])
+    df = df[~df[id_col].astype(str).str.upper().str.contains("TOTAL")]
+    return dict(zip(df[id_col].astype(str).str.strip(), pd.to_numeric(df[area_col], errors="coerce")))
+
+
+def load_polygons(path: str, areas_path: str | None = None) -> gpd.GeoDataFrame:
     """Load KMZ/KML polygons. Falls back to kml2geojson if fiona fails."""
     gdf = _try_fiona_load(path)
     if gdf is None:
@@ -82,6 +103,22 @@ def load_polygons(path: str) -> gpd.GeoDataFrame:
     print(f"[load] using UTM EPSG:{utm_epsg} for area calculation")
     gdf["area_ha"] = gdf_proj.geometry.area / 10_000
     gdf["area_ha"] = gdf["area_ha"].replace(0, 0.001)
+
+    # Override with official areas from polygon_areas.xlsx if provided
+    if areas_path:
+        official = load_polygon_areas(areas_path)
+        if official:
+            name_col = next((c for c in ["Name", "name"] if c in gdf.columns), None)
+            if name_col:
+                def _lookup(row):
+                    raw = str(row[name_col]).strip()
+                    # Try exact match, then prefix match ("Area 1" in "Area 1, 0.07 ha")
+                    for key, val in official.items():
+                        if key == raw or raw.startswith(key) or key.startswith(raw.split(",")[0]):
+                            return val if pd.notna(val) else row["area_ha"]
+                    return row["area_ha"]
+                gdf["area_ha"] = gdf.apply(_lookup, axis=1)
+                print(f"[load] overrode areas from {areas_path} ({len(official)} entries)")
 
     # Centroid: compute in projected CRS (accurate), store in WGS84 for bearing math
     centroids_proj = gdf_proj.geometry.centroid

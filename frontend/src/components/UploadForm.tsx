@@ -10,11 +10,13 @@ interface Props {
 export default function UploadForm({ apiBase, onResult }: Props) {
   const [farmerFile, setFarmerFile] = useState<File | null>(null);
   const [polygonFile, setPolygonFile] = useState<File | null>(null);
+  const [areasFile, setAreasFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dragOver, setDragOver] = useState<"farmer" | "polygon" | null>(null);
+  const [dragOver, setDragOver] = useState<"farmer" | "polygon" | "areas" | null>(null);
   const farmerRef = useRef<HTMLInputElement>(null);
   const polygonRef = useRef<HTMLInputElement>(null);
+  const areasRef = useRef<HTMLInputElement>(null);
 
   const run = async () => {
     if (!farmerFile || !polygonFile) return;
@@ -24,6 +26,7 @@ export default function UploadForm({ apiBase, onResult }: Props) {
       const fd = new FormData();
       fd.append("farmer_file", farmerFile);
       fd.append("polygon_file", polygonFile);
+      if (areasFile) fd.append("areas_file", areasFile);
       const res = await fetch(`${apiBase}/api/match`, { method: "POST", body: fd });
       if (!res.ok) {
         const msg = await res.text();
@@ -38,13 +41,14 @@ export default function UploadForm({ apiBase, onResult }: Props) {
     }
   };
 
-  const handleDrop = (target: "farmer" | "polygon") => (e: DragEvent) => {
+  const handleDrop = (target: "farmer" | "polygon" | "areas") => (e: DragEvent) => {
     e.preventDefault();
     setDragOver(null);
     const file = e.dataTransfer.files[0];
     if (!file) return;
     if (target === "farmer") setFarmerFile(file);
-    else setPolygonFile(file);
+    else if (target === "polygon") setPolygonFile(file);
+    else setAreasFile(file);
   };
 
   return (
@@ -54,7 +58,7 @@ export default function UploadForm({ apiBase, onResult }: Props) {
           Upload Data Files
         </p>
         <p className="text-[12px]" style={{ color: "var(--muted)" }}>
-          Upload the farmer survey (XLSX) and polygon boundaries (KMZ) to run the matching algorithm.
+          Upload all three data files to run the matching algorithm.
         </p>
       </div>
 
@@ -82,6 +86,19 @@ export default function UploadForm({ apiBase, onResult }: Props) {
           onDragLeave={() => setDragOver(null)}
           onChange={(f) => setPolygonFile(f)}
           inputRef={polygonRef}
+        />
+        <DropZone
+          label="Polygon Areas"
+          accept=".xlsx,.xls,.csv"
+          hint="XLSX — optional"
+          file={areasFile}
+          isDragOver={dragOver === "areas"}
+          onDrop={handleDrop("areas")}
+          onDragOver={() => setDragOver("areas")}
+          onDragLeave={() => setDragOver(null)}
+          onChange={(f) => setAreasFile(f)}
+          inputRef={areasRef}
+          optional
         />
       </div>
 
@@ -122,10 +139,10 @@ export default function UploadForm({ apiBase, onResult }: Props) {
 
 function DropZone({
   label, accept, hint, file, isDragOver,
-  onDrop, onDragOver, onDragLeave, onChange, inputRef,
+  onDrop, onDragOver, onDragLeave, onChange, inputRef, optional,
 }: {
   label: string; accept: string; hint: string; file: File | null;
-  isDragOver: boolean;
+  isDragOver: boolean; optional?: boolean;
   onDrop: (e: DragEvent) => void;
   onDragOver: () => void;
   onDragLeave: () => void;
@@ -166,6 +183,7 @@ function DropZone({
           </svg>
           <p className="text-[11px] font-semibold" style={{ color: "var(--text)" }}>{label}</p>
           <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>{hint}</p>
+          {optional && <p className="text-[10px] mt-0.5 italic" style={{ color: "var(--muted)" }}>optional</p>}
         </>
       )}
     </div>
