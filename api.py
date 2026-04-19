@@ -138,14 +138,17 @@ async def match_endpoint(
 async def survey_endpoint(
     farmer_id: str = Form(...),
     survey_text: str = Form(...),
-    api_key: str = Form(...),
+    api_key: str = Form(""),
 ):
     """Parse a neighbor survey with Claude, refine matches, return updated GeoJSON."""
     if "matches" not in _state:
         raise HTTPException(status_code=400, detail="No matching session. Upload files first.")
 
     try:
-        client = anthropic.Anthropic(api_key=api_key)
+        resolved_key = api_key.strip() or os.environ.get("ANTHROPIC_API_KEY", "")
+        if not resolved_key:
+            raise HTTPException(status_code=400, detail="No Anthropic API key provided. Set ANTHROPIC_API_KEY on the server or paste your key in the UI.")
+        client = anthropic.Anthropic(api_key=resolved_key)
         farmer_ids = _state["farmers"]["farmer_id"].tolist()
         parsed = parse_neighbor_survey(survey_text, farmer_ids, client)
 

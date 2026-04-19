@@ -41,7 +41,6 @@ export default function ChatBar({ selectedFeature, apiBase }: Props) {
 
   const send = async () => {
     if (!input.trim() || loading) return;
-    if (!apiKey.trim()) { setShowKeyInput(true); return; }
 
     const userMsg: Message = { role: "user", content: input.trim() };
     setMessages((m) => [...m, userMsg]);
