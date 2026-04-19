@@ -7,6 +7,7 @@ import ConfidenceStrip from "@/components/ConfidenceStrip";
 import AuditPanel from "@/components/AuditPanel";
 import NeighborSurvey from "@/components/NeighborSurvey";
 import UploadForm from "@/components/UploadForm";
+import ChatBar from "@/components/ChatBar";
 
 const MatchMap = dynamic(() => import("@/components/MatchMap"), { ssr: false });
 
@@ -99,6 +100,7 @@ export default function Home() {
               selectedId={selectedId}
               onSelect={handleSelect}
             />
+            <ChatBar selectedFeature={selectedFeature} apiBase={API_BASE} />
           </div>
 
           {/* Right panel */}
