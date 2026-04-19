@@ -28,6 +28,170 @@ st.set_page_config(
     layout="wide",
 )
 
+# ── Design System — CSS (see DESIGN.md) ───────────────────────────────────────
+
+st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --green-900: #1B4332;
+  --green-700: #2D6A4F;
+  --green-500: #40916C;
+  --green-200: #D8F3DC;
+  --green-50:  #F0FAF3;
+  --orange:    #F4A261;
+  --red:       #C1121F;
+  --surface:   #F9F9F9;
+  --border:    #E5E5E5;
+  --text:      #1A1A1A;
+  --muted:     #6B7C76;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+html, body, [class*="css"] {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif !important;
+  color: var(--text);
+}
+
+/* Header */
+header[data-testid="stHeader"] {
+  background: var(--green-900) !important;
+  border-bottom: none !important;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border) !important;
+}
+section[data-testid="stSidebar"] .stMarkdown,
+section[data-testid="stSidebar"] label {
+  font-size: 13px !important;
+  color: var(--muted) !important;
+}
+
+/* Primary button */
+.stButton > button[kind="primary"] {
+  background: var(--green-900) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 8px 18px !important;
+}
+.stButton > button[kind="primary"]:hover {
+  background: var(--green-700) !important;
+}
+
+/* Secondary buttons */
+.stButton > button:not([kind="primary"]) {
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13px !important;
+  background: #fff !important;
+  color: var(--text) !important;
+}
+
+/* Download buttons */
+.stDownloadButton > button {
+  border: 1.5px solid var(--green-900) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--green-900) !important;
+  background: #fff !important;
+}
+.stDownloadButton > button:hover {
+  background: var(--green-50) !important;
+}
+
+/* Metric cards — confidence strip */
+[data-testid="metric-container"] {
+  background: #fff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 14px 16px !important;
+}
+[data-testid="metric-container"] label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: var(--muted) !important;
+}
+[data-testid="metric-container"] [data-testid="stMetricValue"] {
+  font-size: 28px !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1.1 !important;
+}
+[data-testid="metric-container"] [data-testid="stMetricDelta"] {
+  font-size: 11px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Text inputs */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea {
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13px !important;
+  background: #fff !important;
+}
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+  border-color: var(--green-900) !important;
+  box-shadow: none !important;
+}
+
+/* File uploader */
+[data-testid="stFileUploaderDropzone"] {
+  border: 1.5px dashed var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface) !important;
+}
+
+/* Dataframe */
+.stDataFrame {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden !important;
+}
+
+/* Divider */
+hr {
+  border-color: var(--border) !important;
+  margin: 16px 0 !important;
+}
+
+/* Caption text */
+.stCaption {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+}
+
+/* Numeric data — tabular nums */
+[data-testid="stMetricValue"],
+td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Success/info/warning/error messages */
+.stSuccess { border-radius: var(--radius-sm) !important; }
+.stWarning { border-radius: var(--radius-sm) !important; }
+.stError   { border-radius: var(--radius-sm) !important; }
+</style>
+""", unsafe_allow_html=True)
+
 
 # ── Map Builder ────────────────────────────────────────────────────────────────
 
@@ -98,8 +262,19 @@ if "constraints" not in st.session_state:
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 
-st.title("🌾 AI Farmer-Polygon Matcher")
-st.caption("Automated land parcel assignment for carbon credit registration | Green Carbon")
+st.markdown("""
+<div style="display:flex;align-items:center;gap:12px;padding:4px 0 8px">
+  <span style="font-size:22px">🌾</span>
+  <div>
+    <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:600;color:#1A1A1A;letter-spacing:-0.02em;line-height:1.2">
+      AI Farmer-Polygon Matcher
+    </div>
+    <div style="font-family:'DM Sans',sans-serif;font-size:12px;color:#6B7C76;margin-top:2px">
+      Automated land parcel assignment for carbon credit registration &nbsp;·&nbsp; Green Carbon
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 
@@ -157,7 +332,7 @@ if st.session_state.matches is None:
 **How it works:**
 1. Upload the farmer roster (.xlsx) and land parcel map (.kmz)
 2. The algorithm matches each farmer to their parcel using area similarity + spatial group constraints
-3. Each match gets a confidence score: ✅ green (≥80%) / ⚠️ orange (60–79%) / 🔴 red (<60%)
+3. Each match gets a confidence score: green (≥80%) / orange (60–79%) / red (<60%)
 4. Add neighbor survey data to refine uncertain matches using Claude AI
 5. Export as CSV for J-Credit registration or GeoJSON for GIS import
 """)
@@ -172,11 +347,17 @@ orange_n = int((matches["color"] == "orange").sum())
 red_n = int((matches["color"] == "red").sum())
 total = len(matches)
 
+st.markdown(
+    "<div style='font-family:DM Sans,sans-serif;font-size:11px;font-weight:600;"
+    "letter-spacing:0.08em;text-transform:uppercase;color:#6B7C76;margin-bottom:8px'>"
+    "Match Results</div>",
+    unsafe_allow_html=True,
+)
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Farmers Matched", total)
-c2.metric("✅ High Confidence", green_n, f"{green_n/total:.0%}")
-c3.metric("⚠️ Uncertain", orange_n, f"{orange_n/total:.0%}")
-c4.metric("🔴 Flag for Review", red_n, f"{red_n/total:.0%}")
+c2.metric("High Confidence", green_n, f"{green_n/total:.0%}")
+c3.metric("Uncertain", orange_n, f"{orange_n/total:.0%}")
+c4.metric("Flag for Review", red_n, f"{red_n/total:.0%}")
 
 st.divider()
 
@@ -199,11 +380,21 @@ with audit_col:
         row_match = matches[matches["farmer_id"].astype(str) == fid]
         if len(row_match) > 0:
             r = row_match.iloc[0]
-            emoji = {"green": "✅", "orange": "⚠️", "red": "🔴"}.get(r["color"], "")
-            st.markdown(f"### {emoji} Farmer {r['farmer_id']}")
-            st.markdown(f"**Confidence:** {r['confidence']:.0%}")
+            dot_color = {"green": "#40916C", "orange": "#F4A261", "red": "#C1121F"}.get(r["color"], "#aaa")
+            conf_label = {"green": "High Confidence", "orange": "Uncertain", "red": "Flag for Review"}.get(r["color"], "")
+            st.markdown(
+                f"<div style='font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;"
+                f"color:#1A1A1A;margin-bottom:8px'>Farmer {r['farmer_id']}</div>"
+                f"<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 12px;"
+                f"border-radius:9999px;background:{dot_color}22;color:{dot_color};"
+                f"font-size:12px;font-weight:600'>"
+                f"<span style='width:8px;height:8px;border-radius:50%;background:{dot_color};display:inline-block'></span>"
+                f"{r['confidence']:.0%} &nbsp;{conf_label}</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("---")
             st.markdown(f"**Group:** {r['farmer_group']}")
-            st.markdown(f"**Farmer reported area:** {r['farmer_area_ha']:.2f} ha")
+            st.markdown(f"**Farmer area:** {r['farmer_area_ha']:.2f} ha")
             if r["polygon_area_ha"]:
                 pa = r["polygon_area_ha"]
                 err = abs(r["farmer_area_ha"] - pa) / r["farmer_area_ha"]
@@ -212,7 +403,7 @@ with audit_col:
             for part in r["match_reason"].split(" | "):
                 st.markdown(f"- {part}")
     else:
-        st.markdown("*Click a polygon on the map.*")
+        st.markdown("<span style='color:#6B7C76;font-size:13px'>Click a polygon on the map.</span>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -285,7 +476,7 @@ dl1, dl2 = st.columns(2)
 
 with dl1:
     st.download_button(
-        "⬇️ Download CSV (J-Credit registration)",
+        "Download CSV — J-Credit Registration",
         data=matches_to_csv(matches),
         file_name="farmer_polygon_matches.csv",
         mime="text/csv",
@@ -293,7 +484,7 @@ with dl1:
 
 with dl2:
     st.download_button(
-        "⬇️ Download GeoJSON (GIS import)",
+        "Download GeoJSON — GIS Import",
         data=matches_to_geojson(matches),
         file_name="farmer_polygon_matches.geojson",
         mime="application/geo+json",
