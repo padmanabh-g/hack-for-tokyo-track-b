@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --green-900: #1B4332;
+  --green-700: #2D6A4F;
+  --green-500: #40916C;
+  --green-200: #D8F3DC;
+  --green-50:  #F0FAF3;
+  --orange:    #F4A261;
+  --red:       #C1121F;
+  --surface:   #F9F9F9;
+  --border:    #E5E5E5;
+  --text:      #1A1A1A;
+  --muted:     #6B7C76;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  margin: 0;
+}
+
+.maplibregl-map { font-family: 'DM Sans', sans-serif !important; }
+.maplibregl-popup-content {
+  font-family: 'DM Sans', sans-serif !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+  border: 1px solid var(--border) !important;
+}
+.maplibregl-ctrl-group {
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
