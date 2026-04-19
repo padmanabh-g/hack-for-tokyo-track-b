@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Farmer-Polygon Matcher | Green Carbon",
-  description: "Automated land parcel assignment for carbon credit registration",
+  title: "NullIsland — AI Farmer-Polygon Matcher",
+  description: "AI-powered land parcel matching for carbon credit registration",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

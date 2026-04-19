@@ -59,9 +59,9 @@ export default function Home() {
         <span className="text-xl leading-none">🌾</span>
         <div>
           <h1 className="text-[14px] font-semibold leading-tight" style={{ color: "var(--text)" }}>
-            AI Farmer-Polygon Matcher
+            NullIsland
           </h1>
-          <p className="text-[11px]" style={{ color: "var(--muted)" }}>Green Carbon — Carbon Credit Registration</p>
+          <p className="text-[11px]" style={{ color: "var(--muted)" }}>AI Farmer-Polygon Matcher · Green Carbon</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           {data && (

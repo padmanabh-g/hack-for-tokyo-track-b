@@ -1,0 +1,77 @@
+﻿Technical Track B  
+Farm for the Future
+About Green Carbon
+Green Carbon operates with the vision of “Saving the Earth with the Power of Life,” providing comprehensive support from carbon credit creation, and registration, to sales. Additionally, we are involved in agriculture-related businesses, research and development, and ESG consulting, among others. Our main focus is on the generation of carbon credits through methane gas reduction in rice paddies, where we have obtained certification for J-Credits, the first and largest in Japan (approximately 6,220 tons). We also offer a service called “Agreen” that integrates credit registration, application, and sales into one platform, simplifying procedures such as application registration and document preparation, thus reducing the workload for credit creators.
+
+
+The Problem
+In many parts of the world, it is still difficult to clearly match farmers to the exact land they own or manage. Records are often split between simple lists and maps that do not fully align. In this challenge, you are given a list of farmers with basic details such as IDs, land size, and group labels A to E. You are also given a map made up of polygons, which are shapes that represent individual plots of land. These two sources are both useful, but they do not perfectly match each other.
+This mismatch creates real problems. Farmers need to prove which land belongs to them in order to access programs like carbon credits, which are financial incentives for environmentally friendly farming. When dealing with large areas and many farmers, manually matching each person to a plot of land becomes slow and error-prone. Existing tools are not designed to easily connect simple datasets, like spreadsheets, with spatial data, like maps.
+Farmers themselves often have helpful knowledge about their surroundings. For example, they may know which farms are next to theirs or who is located to the north, south, east, or west. This type of information is rarely captured in data systems, but it could help improve accuracy.
+The opportunity is to use AI to link farmer records to the correct land polygons, make use of farmer-provided information, and build a solution that works at scale. This could make land mapping more reliable, unlock access to financial benefits, and support better decision-making in agriculture. That is the gap you are here to fill.
+
+
+Your Challenge
+How might we leverage AI to enable accessible smart farming practices for farmers in regions of the world where we can unlock the power of nature the most? 
+
+
+* This is a model problem. The data presented to you is just a small dataset. In reality this can be multiplied into thousands or tens of thousands of hectares, and hundreds of thousands of farmers.
+* There is a list of farmers containing IDs and farm land areas, and we know that they are categorized into five groups, A-E. However, the groupings do not perfectly align with the manually drawn polygons generated from on-the-ground observations by the field staff.
+* We assume that both the farmer list and the polygons provided by the field staff are provided faithfully and accurately to the best of their ability. For farmers to be eligible for the benefits of carbon credit registration, aligning data and evidence is important.
+
+
+The best solutions will be rooted in real data, technically functional, and clearly connected to measurable outcomes. You do not need to solve everything: a focused, well-executed tool is more compelling than a broad but shallow one.
+Data & Resources
+Primary Datasets
+* A farmer's list with key location details as data parameters (.xlsx)        
+* A map with manually drawn polygons (.kmz)        
+   * A summary of the area per polygon on the map (.xlsx)
+* All data is available in the following folder: https://drive.google.com/drive/folders/14OwmXpbIc0TgGWS_lsEuEwRC5V236mb6?usp=sharing
+
+
+Suggested Tools
+* Python (GeoPandas, Shapely, Rasterio): Spatial data processing, polygon manipulation, and field boundary analysis.
+* Segment Anything Model (SAM) / GroundingDINO: Zero-shot or prompted field detection from satellite or aerial imagery.
+* OpenStreetMap / Google Maps Static API: Base map tiles for visual reference and geocoding farmer locations
+* Scikit-learn / HDBSCAN: Clustering farmers into spatial groupings for aggregated eligibility assessment.
+* Streamlit or Gradio: Rapid prototyping of an interactive map-based dashboard or submission tool.
+* Folium or Kepler.gl: Geospatial visualisation of field polygons and eligibility overlays.
+Deliverable
+Submit the following by 6:00 PM on April 19, 2026:
+Deliverable Description
+A function that can link farmers on a list (text) with fields on a map (polygons) based on key data and responses from farmers about their relative position to one another.
+
+
+Using the data from the farmer list with the field observations as support, generate the most accurate possible method to automate mapping with AI, where each polygon can correctly correspond to a farmer ID. Technical and non-technical concepts are allowed.
+
+
+In the future, it is also assumed that relative positions can be derived from a farmer survey (i.e., farmers can be asked, “Who are their neighbors to the north, south, east, or west of your farm?”). It is assumed that an additional function that can utilize this information will also be useful to assist the process.
+
+
+Deliverable Guidelines:
+* Working prototype or demo: a functional tool, model, visualization, or application built using real data.
+* GitHub repository: all code, notebooks, and data pipelines with a clear README.
+* Slide Deck: problem statement, approach, key findings, and next steps.
+* 1-2 minute video pitch: submit it via Ausna.
+Judging Criteria
+
+
+Criterion
+	What we are looking for
+	Weight
+	Real-World Impact & Scalability
+	Could this solution realistically be deployed across tens of thousands of farmers, multiple communes, or different countries? Does it reduce the manual effort currently needed to register land for carbon credits? A prototype that works on 103 farmers but explains credibly how it scales will score highly here.
+	30%
+	Correctness & Robustness
+	Does the matching function produce defensible, auditable assignments? How does it handle imperfect data — area discrepancies, missing fields, or polygons that span multiple farmers? Carbon credit schemes require traceability, so a solution that explains its uncertainty is more valuable than one that claims perfect accuracy.
+	25%
+	Data Usage
+	Does the team use both the farmer list and the polygon map effectively? Is the area-matching logic thoughtful? Does the solution use group membership as a spatial constraint, or find other meaningful patterns beyond a simple field-by-field comparison?
+	20%
+	Creativity & Originality
+	Does the solution offer a novel matching approach — AI-driven, graph-based, survey-informed, or otherwise — that goes beyond a naive area lookup? Bonus points for solutions that incorporate the neighbour survey function or find unexpected ways to resolve ambiguous matches.
+Pitch & Explanation
+	15%
+	Pitch & Explanation
+	Is the problem, approach, and potential impact communicated clearly and convincingly?
+	10%

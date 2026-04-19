@@ -1,5 +1,5 @@
 """
-api.py — FastAPI backend for the AI Farmer-Polygon Matcher
+api.py — FastAPI backend for NullIsland
 Run: uvicorn api:app --reload --port 8000
 """
 
@@ -24,7 +24,7 @@ from matcher import (
     run_matching,
 )
 
-app = FastAPI(title="AI Farmer-Polygon Matcher API")
+app = FastAPI(title="NullIsland API")
 
 app.add_middleware(
     CORSMiddleware,
