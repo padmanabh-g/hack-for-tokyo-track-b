@@ -18,6 +18,8 @@
 
 * { box-sizing: border-box; }
 
+button, [role="button"], a { cursor: pointer; }
+
 body {
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   background: var(--surface);
