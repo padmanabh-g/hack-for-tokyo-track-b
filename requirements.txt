@@ -1,0 +1,11 @@
+pandas
+openpyxl
+geopandas
+fiona
+scipy
+shapely
+folium
+streamlit
+streamlit-folium
+anthropic
+kml2geojson

@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+*.xlsx
+*.kmz
+*.kml
+*.csv
+*.geojson
+.env
+*.egg-info/
+.DS_Store
