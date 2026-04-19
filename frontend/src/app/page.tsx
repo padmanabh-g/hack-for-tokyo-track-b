@@ -49,7 +49,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "var(--surface)" }}>
+    <div className="flex flex-col h-full" style={{ background: "var(--surface)" }}>
       {/* Top bar */}
       <header
         className="flex items-center gap-3 px-5 py-3 border-b flex-shrink-0"
@@ -80,7 +80,7 @@ export default function Home() {
 
       {/* Upload panel (collapsible) */}
       {showUpload && (
-        <div className="border-b flex-shrink-0" style={{ background: "white", borderColor: "var(--border)" }}>
+        <div className="border-b flex-shrink-0 overflow-y-auto" style={{ background: "white", borderColor: "var(--border)", maxHeight: "45vh" }}>
           <UploadForm apiBase={API_BASE} onResult={handleResult} />
         </div>
       )}
