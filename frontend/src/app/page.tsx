@@ -11,7 +11,7 @@ import ChatBar from "@/components/ChatBar";
 
 const MatchMap = dynamic(() => import("@/components/MatchMap"), { ssr: false });
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
 type RightTab = "audit" | "survey";
 
@@ -62,6 +62,9 @@ export default function Home() {
             NullIsland
           </h1>
           <p className="text-[11px]" style={{ color: "var(--muted)" }}>AI Farmer-Polygon Matcher · Green Carbon</p>
+          {process.env.NODE_ENV === "development" && (
+            <p className="text-[10px]" style={{ color: "var(--muted)", opacity: 0.5 }}>{API_BASE}</p>
+          )}
         </div>
         <div className="ml-auto flex items-center gap-2">
           {data && (
