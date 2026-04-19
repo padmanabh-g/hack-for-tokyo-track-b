@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { MatchGeoJSON, MatchFeature, CONFIDENCE_COLORS } from "@/lib/types";
 
 interface Props {
@@ -13,20 +13,23 @@ export default function MatchMap({ data, selectedId, onSelect }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("maplibre-gl").Map | null>(null);
   const popupRef = useRef<import("maplibre-gl").Popup | null>(null);
+  const mountedRef = useRef(false); // survives StrictMode double-invoke
+  const prevSelectedRef = useRef<string | null>(null);
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
 
-  const getColor = useCallback((color: "green" | "orange" | "red") => {
-    return CONFIDENCE_COLORS[color].fill;
-  }, []);
-
+  // Init map once
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (mountedRef.current) return;
+    mountedRef.current = true;
 
-    let map: import("maplibre-gl").Map;
-    let popup: import("maplibre-gl").Popup;
+    let cancelled = false;
 
     import("maplibre-gl").then((mlgl) => {
-      map = new mlgl.Map({
-        container: containerRef.current!,
+      if (cancelled || !containerRef.current) return;
+
+      const map = new mlgl.Map({
+        container: containerRef.current,
         style: {
           version: 8,
           sources: {
@@ -39,52 +42,36 @@ export default function MatchMap({ data, selectedId, onSelect }: Props) {
           },
           layers: [{ id: "osm", type: "raster", source: "osm" }],
         },
-        center: [136.5, 35.5],
-        zoom: 6,
+        center: [105.51, 18.88],
+        zoom: 14,
       });
 
-      popup = new mlgl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
+      const popup = new mlgl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
       popupRef.current = popup;
       mapRef.current = map;
 
       map.on("load", () => {
-        // Fit to data if we have geometries
-        const withGeom = data.features.filter((f) => f.geometry);
-        if (withGeom.length > 0) {
-          const lngs = withGeom.flatMap((f) => {
-            try {
-              const coords = extractCoords(f.geometry!);
-              return coords.map((c) => c[0]);
-            } catch { return []; }
-          });
-          const lats = withGeom.flatMap((f) => {
-            try {
-              const coords = extractCoords(f.geometry!);
-              return coords.map((c) => c[1]);
-            } catch { return []; }
-          });
-          if (lngs.length > 0) {
-            map.fitBounds(
-              [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-              { padding: 60, maxZoom: 14 }
-            );
+        if (cancelled) return;
+
+        // Fit bounds to data
+        const allCoords: [number, number][] = [];
+        data.features.forEach((f) => {
+          if (f.geometry) {
+            extractCoords(f.geometry).forEach((c) => allCoords.push(c));
+          } else if (f.properties.centroid) {
+            allCoords.push([f.properties.centroid[1], f.properties.centroid[0]]);
           }
-        } else {
-          // Fall back to centroids
-          const withCentroid = data.features.filter((f) => f.properties.centroid);
-          if (withCentroid.length > 0) {
-            const lngs = withCentroid.map((f) => f.properties.centroid![1]);
-            const lats = withCentroid.map((f) => f.properties.centroid![0]);
-            map.fitBounds(
-              [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-              { padding: 80, maxZoom: 14 }
-            );
-          }
+        });
+        if (allCoords.length > 0) {
+          const lngs = allCoords.map((c) => c[0]);
+          const lats = allCoords.map((c) => c[1]);
+          map.fitBounds(
+            [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+            { padding: 60, maxZoom: 16, duration: 0 }
+          );
         }
 
-        const geojson = buildGeoJSON(data);
-
-        map.addSource("matches", { type: "geojson", data: geojson });
+        map.addSource("matches", { type: "geojson", data: buildGeoJSON(data) });
 
         map.addLayer({
           id: "polygons-fill",
@@ -126,7 +113,7 @@ export default function MatchMap({ data, selectedId, onSelect }: Props) {
         clickLayers.forEach((layer) => {
           map.on("click", layer, (e) => {
             const f = e.features?.[0];
-            if (f) onSelect(f.properties.farmer_id as string);
+            if (f) onSelectRef.current(f.properties.farmer_id as string);
           });
 
           map.on("mouseenter", layer, (e) => {
@@ -134,13 +121,14 @@ export default function MatchMap({ data, selectedId, onSelect }: Props) {
             const f = e.features?.[0];
             if (!f || !e.lngLat) return;
             const p = f.properties;
+            const color = (p.color ?? "red") as "green" | "orange" | "red";
             popup
               .setLngLat(e.lngLat)
               .setHTML(
-                `<div style="font-size:12px;line-height:1.5">
-                  <strong style="display:block;margin-bottom:2px">${p.farmer_id}</strong>
-                  <span style="color:${CONFIDENCE_COLORS[p.color as "green"].text}">${p.match_reason?.slice(0, 60) ?? ""}</span>
-                  <div style="margin-top:4px;color:#6B7C76">${Math.round((p.confidence ?? 0) * 100)}% confidence</div>
+                `<div style="font-size:12px;line-height:1.6">
+                  <strong style="display:block">${p.farmer_id}</strong>
+                  <span style="color:${CONFIDENCE_COLORS[color].text}">${(p.match_reason ?? "").slice(0, 70)}</span>
+                  <div style="margin-top:3px;color:#6B7C76">${Math.round((p.confidence ?? 0) * 100)}% confidence</div>
                 </div>`
               )
               .addTo(map);
@@ -154,28 +142,55 @@ export default function MatchMap({ data, selectedId, onSelect }: Props) {
 
         map.on("click", (e) => {
           const hits = map.queryRenderedFeatures(e.point, { layers: clickLayers });
-          if (hits.length === 0) onSelect(null);
+          if (hits.length === 0) onSelectRef.current(null);
         });
       });
     });
 
     return () => {
+      cancelled = true;
+      // Don't destroy map on StrictMode cleanup — mountedRef prevents double-init
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Proper cleanup only on true unmount
+  useEffect(() => {
+    return () => {
       popupRef.current?.remove();
       mapRef.current?.remove();
       mapRef.current = null;
       popupRef.current = null;
+      mountedRef.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update selected feature state
+  // Update only the two affected features (prev + new) instead of all 103
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
-    data.features.forEach((f) => {
-      const id = f.properties.farmer_id;
-      map.setFeatureState({ source: "matches", id }, { selected: id === selectedId });
-    });
+    if (!map) return;
+
+    const apply = () => {
+      const prev = prevSelectedRef.current;
+      const next = selectedId;
+
+      // Deselect previous
+      if (prev !== null) {
+        const prevIdx = data.features.findIndex((f) => f.properties.farmer_id === prev);
+        if (prevIdx !== -1) map.setFeatureState({ source: "matches", id: prevIdx }, { selected: false });
+      }
+      // Select new
+      if (next !== null) {
+        const nextIdx = data.features.findIndex((f) => f.properties.farmer_id === next);
+        if (nextIdx !== -1) map.setFeatureState({ source: "matches", id: nextIdx }, { selected: true });
+      }
+      prevSelectedRef.current = next;
+    };
+
+    if (map.isStyleLoaded()) {
+      apply();
+    } else {
+      map.once("load", apply);
+    }
   }, [selectedId, data]);
 
   return (
@@ -215,34 +230,18 @@ function extractCoords(geometry: GeoJSON.Geometry): [number, number][] {
 
 function buildGeoJSON(data: MatchGeoJSON): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = [];
-
   data.features.forEach((f: MatchFeature, i: number) => {
-    const { color, centroid } = f.properties;
-    const colors = CONFIDENCE_COLORS[color];
-
-    const baseProps = {
-      ...f.properties,
-      fillColor: colors.fill,
-      borderColor: colors.border,
-    };
-
+    const colors = CONFIDENCE_COLORS[f.properties.color];
+    const baseProps = { ...f.properties, fillColor: colors.fill, borderColor: colors.border };
     if (f.geometry) {
+      features.push({ type: "Feature", id: i, geometry: f.geometry, properties: baseProps });
+    } else if (f.properties.centroid) {
       features.push({
-        type: "Feature",
-        id: i,
-        geometry: f.geometry,
-        properties: baseProps,
-      });
-    } else if (centroid) {
-      // [lat, lng] → GeoJSON [lng, lat]
-      features.push({
-        type: "Feature",
-        id: i,
-        geometry: { type: "Point", coordinates: [centroid[1], centroid[0]] },
+        type: "Feature", id: i,
+        geometry: { type: "Point", coordinates: [f.properties.centroid[1], f.properties.centroid[0]] },
         properties: baseProps,
       });
     }
   });
-
   return { type: "FeatureCollection", features };
 }
