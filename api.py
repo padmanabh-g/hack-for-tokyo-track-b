@@ -43,17 +43,20 @@ def _matches_to_geojson_response(matches):
 
     features = []
     for _, row in matches.iterrows():
+        import pandas as pd
         geom = None
-        if row.get("geometry") is not None:
+        raw_geom = row.get("geometry")
+        if raw_geom is not None and not (isinstance(raw_geom, float) and pd.isna(raw_geom)):
             try:
-                geom = mapping(row["geometry"])
+                geom = mapping(raw_geom)
             except Exception:
                 geom = None
 
         centroid = None
-        if row.get("centroid") is not None:
+        raw_centroid = row.get("centroid")
+        if raw_centroid is not None and not (isinstance(raw_centroid, float) and pd.isna(raw_centroid)):
             try:
-                centroid = [row["centroid"].y, row["centroid"].x]  # [lat, lng]
+                centroid = [raw_centroid.y, raw_centroid.x]  # [lat, lng]
             except Exception:
                 centroid = None
 
@@ -65,8 +68,8 @@ def _matches_to_geojson_response(matches):
                     "farmer_id": str(row["farmer_id"]),
                     "farmer_area_ha": float(row["farmer_area_ha"]) if row["farmer_area_ha"] is not None else None,
                     "farmer_group": str(row["farmer_group"]),
-                    "polygon_idx": int(row["polygon_idx"]) if row["polygon_idx"] is not None else None,
-                    "polygon_area_ha": float(row["polygon_area_ha"]) if row["polygon_area_ha"] is not None else None,
+                    "polygon_idx": int(row["polygon_idx"]) if (row["polygon_idx"] is not None and str(row["polygon_idx"]) != "nan") else None,
+                    "polygon_area_ha": float(row["polygon_area_ha"]) if (row["polygon_area_ha"] is not None and str(row["polygon_area_ha"]) != "nan") else None,
                     "confidence": float(row["confidence"]),
                     "color": str(row["color"]),
                     "match_reason": str(row["match_reason"]),

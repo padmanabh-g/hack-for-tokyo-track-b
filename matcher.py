@@ -20,7 +20,15 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # ── Data Loading ──────────────────────────────────────────────────────────────
 
 def load_farmers(path: str) -> pd.DataFrame:
-    df = pd.read_excel(path)
+    # Auto-detect header row: find the first row containing "id" or "farmer"
+    raw = pd.read_excel(path, header=None)
+    header_row = 0
+    for i, row in raw.iterrows():
+        vals = " ".join(str(v).lower() for v in row if pd.notna(v))
+        if ("farmer id" in vals or ("farmer" in vals and "id" in vals) or "area" in vals):
+            header_row = i
+            break
+    df = pd.read_excel(path, header=header_row)
     df.columns = [c.strip().lower() for c in df.columns]
 
     # Flexible column name matching
@@ -44,8 +52,10 @@ def load_farmers(path: str) -> pd.DataFrame:
     if "group" not in df.columns:
         df["group"] = "A"  # fallback: single group
 
+    # Drop summary/total rows
+    df = df[~df["farmer_id"].astype(str).str.upper().str.strip().isin(["TOTAL", "SUM", ""])]
     df = df[["farmer_id", "area_ha", "group"]].reset_index(drop=True)
-    print(f"[load] {len(df)} farmers | groups: {sorted(df['group'].unique())}")
+    print(f"[load] {len(df)} farmers | groups: {sorted(df['group'].dropna().unique())}")
     return df
 
 
@@ -64,14 +74,18 @@ def load_polygons(path: str) -> gpd.GeoDataFrame:
     gdf = gdf[gdf.geometry.geom_type.isin(["Polygon", "MultiPolygon"])].copy()
     gdf = gdf.reset_index(drop=True)
 
-    # Area in hectares — reproject to JGD2011 (Japan standard)
-    gdf_proj = gdf.to_crs(epsg=6668)
+    # Area in hectares — auto-pick UTM zone from first polygon's bounding box midpoint
+    sample_lon = (gdf.geometry.bounds["minx"].mean() + gdf.geometry.bounds["maxx"].mean()) / 2
+    utm_zone = int((sample_lon + 180) / 6) + 1
+    utm_epsg = 32600 + utm_zone  # WGS84 UTM North (sufficient for this use case)
+    gdf_proj = gdf.to_crs(epsg=utm_epsg)
+    print(f"[load] using UTM EPSG:{utm_epsg} for area calculation")
     gdf["area_ha"] = gdf_proj.geometry.area / 10_000
     gdf["area_ha"] = gdf["area_ha"].replace(0, 0.001)
 
     # Centroid: compute in projected CRS (accurate), store in WGS84 for bearing math
     centroids_proj = gdf_proj.geometry.centroid
-    gdf["centroid"] = gpd.GeoSeries(centroids_proj, crs=6668).to_crs(epsg=4326)
+    gdf["centroid"] = gpd.GeoSeries(centroids_proj, crs=utm_epsg).to_crs(epsg=4326)
 
     # Extract group label from Name/Description field
     gdf["group"] = gdf.apply(_extract_group, axis=1)
@@ -81,24 +95,35 @@ def load_polygons(path: str) -> gpd.GeoDataFrame:
 
 
 def _try_fiona_load(path: str):
+    import zipfile, tempfile, os
     try:
         fiona.drvsupport.supported_drivers["KML"] = "rw"
         fiona.drvsupport.supported_drivers["LIBKML"] = "rw"
-        layers = fiona.listlayers(path)
-        print(f"[fiona] KMZ layers: {layers}")
-        gdfs = []
-        for layer in layers:
-            try:
-                g = gpd.read_file(path, driver="KML", layer=layer)
-                if len(g) > 0:
-                    g["_layer"] = layer
-                    gdfs.append(g)
-            except Exception:
-                pass
-        if not gdfs:
-            return None
-        gdf = pd.concat(gdfs, ignore_index=True)
-        return gdf if len(gdf) > 0 else None
+        # Extract KMZ (zip) to temp dir so fiona can read the KML
+        with tempfile.TemporaryDirectory() as tmpdir:
+            if path.lower().endswith(".kmz"):
+                with zipfile.ZipFile(path, "r") as z:
+                    z.extractall(tmpdir)
+                kml_files = [os.path.join(tmpdir, f) for f in os.listdir(tmpdir) if f.endswith(".kml")]
+                kml_path = kml_files[0] if kml_files else path
+            else:
+                kml_path = path
+
+            layers = fiona.listlayers(kml_path)
+            print(f"[fiona] KML layers: {layers}")
+            gdfs = []
+            for layer in layers:
+                try:
+                    g = gpd.read_file(kml_path, driver="KML", layer=layer)
+                    if len(g) > 0:
+                        g["_layer"] = layer
+                        gdfs.append(g)
+                except Exception:
+                    pass
+            if not gdfs:
+                return None
+            gdf = pd.concat(gdfs, ignore_index=True)
+            return gdf if len(gdf) > 0 else None
     except Exception as e:
         print(f"[fiona] failed: {e}")
         return None
